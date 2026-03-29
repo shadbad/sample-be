@@ -17,7 +17,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { PaginatedUsersResponseDto } from './dto/paginated-users-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
-import type { IUserRepository } from './interfaces/user-repository.interface';
+import type { FindAllOptions, IUserRepository } from './interfaces/user-repository.interface';
 import { I_USER_REPOSITORY } from './interfaces/user-repository.interface';
 import { User } from './user.entity';
 
@@ -36,16 +36,17 @@ export class UsersService {
     private readonly _pubSub: PubSubPublisherService,
   ) {}
 
-  /** Return paginated list of users. */
+  /** Return a paginated, searchable, sortable list of users. */
   async findAll(
     page = DEFAULT_PAGE,
     limit = DEFAULT_LIMIT,
+    options: FindAllOptions = {},
   ): Promise<Result<PaginatedUsersResponseDto>> {
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(limit, MAX_LIMIT);
     const skip = (safePage - 1) * safeLimit;
 
-    const [users, total] = await this._usersRepo.findAll(skip, safeLimit);
+    const [users, total] = await this._usersRepo.findAll(skip, safeLimit, options);
     return ok({
       data: users.map((u) => u.toResponseDto()),
       meta: {
@@ -53,6 +54,9 @@ export class UsersService {
         page: safePage,
         limit: safeLimit,
         totalPages: Math.ceil(total / safeLimit),
+        ...(options.search !== undefined ? { search: options.search } : {}),
+        ...(options.sortBy !== undefined ? { sortBy: options.sortBy } : {}),
+        ...(options.sortOrder !== undefined ? { sortOrder: options.sortOrder } : {}),
       },
     });
   }

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
-import { IUserRepository } from './interfaces/user-repository.interface';
+import type { FindAllOptions, IUserRepository } from './interfaces/user-repository.interface';
 import { User } from './user.entity';
 
 /** TypeORM implementation of IUserRepository. */
@@ -13,13 +13,20 @@ export class UsersRepository implements IUserRepository {
     private readonly _repo: Repository<User>,
   ) {}
 
-  /** Return paginated users with role relation. */
-  findAll(skip: number, take: number): Promise<[User[], number]> {
+  /** Return paginated users with optional search filter and dynamic sort order. */
+  findAll(skip: number, take: number, options: FindAllOptions = {}): Promise<[User[], number]> {
+    const { search, sortBy = 'createdAt', sortOrder = 'desc' } = options;
+
+    const where = search?.trim()
+      ? [{ fullName: ILike(`%${search.trim()}%`) }, { email: ILike(`%${search.trim()}%`) }]
+      : undefined;
+
     return this._repo.findAndCount({
       relations: { role: true },
+      where,
       skip,
       take,
-      order: { createdAt: 'DESC' },
+      order: { [sortBy]: sortOrder.toUpperCase() as 'ASC' | 'DESC' },
     });
   }
 
