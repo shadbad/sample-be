@@ -23,6 +23,9 @@ async function bootstrap(): Promise<void> {
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('API Gateway')
+    .setDescription(
+      'Single entry-point that proxies requests to identity-service and user-service, enforcing JWT authentication.',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();

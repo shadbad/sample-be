@@ -19,6 +19,7 @@ async function bootstrap(): Promise<void> {
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('User Service')
+    .setDescription('User profile management — create, read, update, and soft-delete user records.')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

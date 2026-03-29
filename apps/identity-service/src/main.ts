@@ -26,6 +26,7 @@ async function bootstrap(): Promise<void> {
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Identity Service')
+    .setDescription('JWT-based authentication — registration, login, token refresh, and logout.')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
