@@ -1,5 +1,6 @@
 import { createMock } from '@golevelup/ts-jest';
 import { PubSub, Topic } from '@google-cloud/pubsub';
+import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { AppException } from '@libs/core';
@@ -12,6 +13,7 @@ describe('PubSubPublisherService', () => {
   let mockPubSub: jest.Mocked<PubSub>;
 
   beforeEach(async () => {
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     mockPubSub = createMock<PubSub>();
 
     const module: TestingModule = await Test.createTestingModule({

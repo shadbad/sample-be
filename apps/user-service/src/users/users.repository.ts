@@ -16,7 +16,6 @@ export class UsersRepository implements IUserRepository {
   /** Return paginated users with role relation. */
   findAll(skip: number, take: number): Promise<[User[], number]> {
     return this._repo.findAndCount({
-      select: ['id', 'email', 'fullName', 'roleId', 'createdAt', 'updatedAt'],
       relations: { role: true },
       skip,
       take,

@@ -37,6 +37,12 @@ export class ProxyService {
     if (req.headers['content-type'] !== undefined) {
       headers['content-type'] = req.headers['content-type'];
     }
+    if (req.headers['authorization'] !== undefined) {
+      headers['authorization'] = req.headers['authorization'];
+    }
+    if (req.headers['cookie'] !== undefined) {
+      headers['cookie'] = req.headers['cookie'];
+    }
 
     return this._http
       .request({

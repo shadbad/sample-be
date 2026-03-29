@@ -1,3 +1,3 @@
 export const DEFAULT_ROLES = [
-  { id: '00000000-0000-0000-0000-000000000010', name: 'admin' },
+  { id: '82643745-f3f0-440f-885a-d9b88d0f3d18', name: 'admin' },
 ] as const;

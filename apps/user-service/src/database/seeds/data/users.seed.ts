@@ -1,8 +1,8 @@
 export const DEFAULT_USERS = [
   {
-    id: '00000000-0000-0000-0000-000000000001',
+    id: '9aaa0220-6fc4-43b4-af60-1c9c76b17f09',
     email: 'admin@example.com',
     fullName: 'Admin User',
-    roleId: '00000000-0000-0000-0000-000000000010',
+    roleId: '82643745-f3f0-440f-885a-d9b88d0f3d18',
   },
 ] as const;

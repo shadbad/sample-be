@@ -1,0 +1,18 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "^@libs/common(|/.*)$": "<rootDir>/../../libs/common/src/$1",
+    "^@libs/contracts(|/.*)$": "<rootDir>/../../libs/contracts/src/$1",
+    "^@libs/core(|/.*)$": "<rootDir>/../../libs/core/src/$1",
+    "^@libs/infra(|/.*)$": "<rootDir>/../../libs/infra/src/$1"
+  },
+  "globalSetup": "./setup/global-setup.ts",
+  "globalTeardown": "./setup/global-teardown.ts",
+  "testTimeout": 30000
+}

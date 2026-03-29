@@ -2,6 +2,7 @@ import { createMock } from '@golevelup/ts-jest';
 import { HttpService } from '@nestjs/axios';
 import {
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -35,6 +36,7 @@ describe('ProxyService', () => {
   let http: jest.Mocked<HttpService>;
 
   beforeEach(() => {
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     http = createMock<HttpService>();
     service = new ProxyService(http);
   });
