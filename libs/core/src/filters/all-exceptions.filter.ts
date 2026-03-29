@@ -20,10 +20,8 @@ import {
 function resolveStatus(exception: unknown): number {
   if (exception instanceof NotFoundException) return HttpStatus.NOT_FOUND;
   if (exception instanceof ConflictException) return HttpStatus.CONFLICT;
-  if (exception instanceof ValidationException)
-    return HttpStatus.UNPROCESSABLE_ENTITY;
-  if (exception instanceof UnauthorisedException)
-    return HttpStatus.UNAUTHORIZED;
+  if (exception instanceof ValidationException) return HttpStatus.UNPROCESSABLE_ENTITY;
+  if (exception instanceof UnauthorisedException) return HttpStatus.UNAUTHORIZED;
   if (exception instanceof HttpException) return exception.getStatus();
   return HttpStatus.INTERNAL_SERVER_ERROR;
 }
@@ -33,6 +31,10 @@ function resolveStatus(exception: unknown): number {
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly _logger = new Logger(AllExceptionsFilter.name);
 
+  /**
+   * Intercept every unhandled exception, map it to a structured JSON error response,
+   * and log 5xx errors with full context.
+   */
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
@@ -54,10 +56,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         : 'Internal server error';
 
     if (status >= 500) {
-      this._logger.error(
-        { path: req.url, method: req.method, exception },
-        'Unhandled exception',
-      );
+      this._logger.error({ path: req.url, method: req.method, exception }, 'Unhandled exception');
     }
 
     res.status(status).json({

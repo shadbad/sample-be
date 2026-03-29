@@ -1,7 +1,4 @@
-export {
-  IDENTITY_EVENTS_TOPIC,
-  IDENTITY_EVENT_TYPES,
-} from './events/identity.events';
+export { IDENTITY_EVENTS_TOPIC, IDENTITY_EVENT_TYPES } from './events/identity.events';
 export type {
   IdentityEvent,
   IdentityUserDeactivatedEvent,
