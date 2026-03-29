@@ -22,6 +22,7 @@
     "infra:up": "docker compose up -d && sleep 4 && ./scripts/init-pubsub.sh",
     "lint:check": "eslint .",
     "lint:fix": "eslint . --fix",
+    "prepare": "husky",
     "start": "nest start",
     "start:debug": "nest start --debug --watch",
     "start:dev": "nest start --watch",
@@ -32,6 +33,15 @@
     "test:e2e": "jest --config ./test/e2e/jest-e2e.json --runInBand",
     "test:watch": "jest --watch",
     "type:check": "tsc --noEmit"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "**/*.{json,md}": [
+      "prettier --write"
+    ]
   },
   "jest": {
     "collectCoverageFrom": [
@@ -106,7 +116,9 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^16.0.0",
+    "husky": "^9.1.7",
     "jest": "^30.0.0",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.4.2",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-packagejson": "^3.0.2",
