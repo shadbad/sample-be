@@ -1,5 +1,6 @@
-import * as bcrypt from 'bcrypt';
 import 'reflect-metadata';
+
+import * as bcrypt from 'bcrypt';
 
 import { Credential } from '../../auth/credential.entity';
 import { AppDataSource } from '../data-source';
