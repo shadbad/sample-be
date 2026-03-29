@@ -87,19 +87,22 @@ git clone <repo-url> sample-be
 cd sample-be
 npm install
 
-# 2. Create environment file
-cp .env.example .env.local
+# 2. Create per-service environment files from the provided examples
+cp .env.api-gateway.example .env.api-gateway
+cp .env.identity.example    .env.identity
+cp .env.user-service.example .env.user-service
+# Edit each file and fill in real values where noted
 
 # 3. Start infrastructure (Postgres + Pub/Sub emulator)
 npm run infra:up
 
 # 4. Run database migrations
-npm run migrate:identity
-npm run migrate:user
+npm run db:identity-service:migration:up
+npm run db:user-service:migration:up
 
 # 5. Seed initial data
-npm run seed:identity
-npm run seed:user
+npm run db:identity-service:seed
+npm run db:user-service:seed
 
 # 6. Start all services in watch mode
 npm run dev
@@ -109,20 +112,28 @@ npm run dev
 
 ## Environment Variables
 
-Create a `.env.local` file at the repo root. Copy from `.env.example` and adjust as needed.
+Each service loads its own env file from the repo root. Copy the relevant `.example` file and fill in the values:
 
-| Variable               | Service           | Description                            | Example                                           |
-| ---------------------- | ----------------- | -------------------------------------- | ------------------------------------------------- |
-| `PORT`                 | all               | HTTP port for the service              | `3000`                                            |
-| `DATABASE_URL`         | identity, user    | PostgreSQL connection string           | `postgresql://dev:dev@localhost:5432/identity_db` |
-| `JWT_SECRET`           | gateway, identity | Shared HS256 signing secret            | `local-dev-secret-change-in-production`           |
-| `JWT_EXPIRES_IN`       | identity          | Access token lifetime                  | `15m`                                             |
-| `PUBSUB_PROJECT_ID`    | identity, user    | GCP project ID (emulator: `local-dev`) | `local-dev`                                       |
-| `PUBSUB_EMULATOR_HOST` | identity, user    | Emulator host (omit in production)     | `localhost:8085`                                  |
-| `IDENTITY_SERVICE_URL` | gateway           | Downstream URL for identity-service    | `http://localhost:3002`                           |
-| `USER_SERVICE_URL`     | gateway           | Downstream URL for user-service        | `http://localhost:3001`                           |
+| File                      | Service          | Copy from                      |
+| ------------------------- | ---------------- | ------------------------------ |
+| `.env.api-gateway`        | API Gateway      | `.env.api-gateway.example`     |
+| `.env.identity`           | Identity Service | `.env.identity.example`        |
+| `.env.user-service`       | User Service     | `.env.user-service.example`    |
 
-> **Security:** Never commit `.env.local` or any file containing real secrets. The `.gitignore` excludes all `.env*` files except `.env.example`.
+### Variable reference
+
+| Variable               | File(s)                              | Description                            | Example                                           |
+| ---------------------- | ------------------------------------ | -------------------------------------- | ------------------------------------------------- |
+| `PORT`                 | all                                  | HTTP port for the service              | `3000`                                            |
+| `DATABASE_URL`         | `.env.identity`, `.env.user-service` | PostgreSQL connection string           | `postgresql://dev:dev@localhost:5432/identity_db` |
+| `JWT_SECRET`           | `.env.api-gateway`, `.env.identity`  | Shared HS256 signing secret            | *(generate a strong random value)*                |
+| `JWT_EXPIRES_IN`       | `.env.identity`                      | Access token lifetime                  | `15m`                                             |
+| `PUBSUB_PROJECT_ID`    | `.env.identity`, `.env.user-service` | GCP project ID (emulator: `local-dev`) | `local-dev`                                       |
+| `PUBSUB_EMULATOR_HOST` | `.env.identity`, `.env.user-service` | Emulator host — omit in production     | `localhost:8085`                                  |
+| `IDENTITY_SERVICE_URL` | `.env.api-gateway`                   | Downstream URL for identity-service    | `http://localhost:3002`                           |
+| `USER_SERVICE_URL`     | `.env.api-gateway`                   | Downstream URL for user-service        | `http://localhost:3001`                           |
+
+> **Security:** Never commit real env files. The `.gitignore` excludes all `.env.*` files; only `*.example` files are committed.
 
 ---
 
@@ -147,31 +158,68 @@ nest start user-service --watch
 ### Infrastructure only
 
 ```bash
-npm run infra:up    # start Postgres + Pub/Sub emulator
+npm run infra:up    # start Postgres + Pub/Sub emulator + pgAdmin
 npm run infra:down  # stop and remove containers
 ```
+
+### pgAdmin (Database UI)
+
+pgAdmin runs as part of the Docker stack and is available at **http://localhost:5050** after `npm run infra:up`.
+
+| Field    | Value             |
+| -------- | ----------------- |
+| Email    | `admin@local.dev` |
+| Password | `admin`           |
+
+To connect to the local Postgres instance, add a new server with:
+
+| Field    | Value      |
+| -------- | ---------- |
+| Host     | `postgres` |
+| Port     | `5432`     |
+| Username | `dev`      |
+| Password | `dev`      |
+
+Both `identity_db` and `users_db` will be visible once connected.
 
 ---
 
 ## Database Migrations & Seeds
 
-### Run migrations
+`DATABASE_URL` is read from the service's env file (`.env.identity` / `.env.user-service`), so no inline env prefix is needed.
+
+### Apply migrations
 
 ```bash
-# Identity service (identity_db)
-DATABASE_URL=postgresql://dev:dev@localhost:5432/identity_db npm run migrate:identity
-
-# User service (users_db)
-DATABASE_URL=postgresql://dev:dev@localhost:5432/users_db npm run migrate:user
+npm run db:identity-service:migration:up
+npm run db:user-service:migration:up
 ```
+
+### Revert last migration
+
+```bash
+npm run db:identity-service:migration:down
+npm run db:user-service:migration:down
+```
+
+### Generate a migration
+
+Run after modifying an entity. Pass a descriptive `--name`:
+
+```bash
+npm run db:identity-service:migration:generate --name=AddLastLoginIndex
+npm run db:user-service:migration:generate --name=CreateRolesAndUsersTable
+```
+
+TypeORM diffs the entity definitions against the live schema and writes a timestamped file to `apps/<service>/src/database/migrations/`.
 
 ### Run seeds
 
 Seeds are idempotent — safe to re-run at any time.
 
 ```bash
-DATABASE_URL=postgresql://dev:dev@localhost:5432/identity_db npm run seed:identity
-DATABASE_URL=postgresql://dev:dev@localhost:5432/users_db npm run seed:user
+npm run db:identity-service:seed
+npm run db:user-service:seed
 ```
 
 Default seeded credentials:
@@ -183,14 +231,6 @@ Default seeded credentials:
 | Role     | `admin`             |
 
 > Change the admin password immediately in any non-local environment.
-
-### Generate a new migration
-
-```bash
-# After modifying an entity, generate a migration automatically:
-npx typeorm migration:generate -d apps/identity-service/src/database/data-source.ts \
-  apps/identity-service/src/database/migrations/YourMigrationName
-```
 
 ---
 
@@ -285,17 +325,47 @@ Tests are co-located with source files (`*.spec.ts`). All unit tests mock I/O us
 
 ## Scripts Reference
 
-| Script                     | Description                                       |
-| -------------------------- | ------------------------------------------------- |
-| `npm run dev`              | Start infra + all services in watch mode          |
-| `npm run infra:up`         | Start Docker services + initialise Pub/Sub topics |
-| `npm run infra:down`       | Stop and remove Docker containers                 |
-| `npm run migrate:identity` | Run pending migrations for identity_db            |
-| `npm run migrate:user`     | Run pending migrations for users_db               |
-| `npm run seed:identity`    | Seed default admin credential (idempotent)        |
-| `npm run seed:user`        | Seed default roles and admin user (idempotent)    |
-| `npm test`                 | Run all unit tests                                |
-| `npm run test:cov`         | Run tests with coverage report                    |
-| `npm run lint`             | Lint and auto-fix all TypeScript files            |
-| `npm run format`           | Format all TypeScript files with Prettier         |
-| `npm run build`            | Build all apps for production                     |
+### Development
+
+| Script               | Description                                            |
+| -------------------- | ------------------------------------------------------ |
+| `npm run dev`        | Start infra + all three services in watch mode         |
+| `npm run infra:up`   | Start Docker services + initialise Pub/Sub topics/subs |
+| `npm run infra:down` | Stop and remove Docker containers                      |
+| `npm run build`      | Compile all apps for production                        |
+
+### Database — Identity Service
+
+| Script                                                              | Description                                     |
+| ------------------------------------------------------------------- | ----------------------------------------------- |
+| `npm run db:identity-service:migration:up`                          | Run all pending migrations on `identity_db`     |
+| `npm run db:identity-service:migration:down`                        | Revert the last applied migration               |
+| `npm run db:identity-service:migration:generate --name=<Name>`      | Generate a migration from entity diff           |
+| `npm run db:identity-service:seed`                                  | Seed default admin credential (idempotent)      |
+
+### Database — User Service
+
+| Script                                                           | Description                                     |
+| ---------------------------------------------------------------- | ----------------------------------------------- |
+| `npm run db:user-service:migration:up`                           | Run all pending migrations on `users_db`        |
+| `npm run db:user-service:migration:down`                         | Revert the last applied migration               |
+| `npm run db:user-service:migration:generate --name=<Name>`       | Generate a migration from entity diff           |
+| `npm run db:user-service:seed`                                   | Seed default roles and admin user (idempotent)  |
+
+### Code Quality
+
+| Script                  | Description                                      |
+| ----------------------- | ------------------------------------------------ |
+| `npm run type:check`    | TypeScript type check (no emit)                  |
+| `npm run lint:check`    | ESLint — report only                             |
+| `npm run lint:fix`      | ESLint — report and auto-fix                     |
+| `npm run format:check`  | Prettier — report only                           |
+| `npm run format:fix`    | Prettier — auto-fix                              |
+
+### Testing
+
+| Script                | Description                               |
+| --------------------- | ----------------------------------------- |
+| `npm test`            | Run all unit tests once                   |
+| `npm run test:watch`  | Run unit tests in watch mode              |
+| `npm run test:cov`    | Run tests and generate coverage report    |

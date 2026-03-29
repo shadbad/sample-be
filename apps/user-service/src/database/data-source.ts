@@ -2,15 +2,16 @@ import { config } from 'dotenv';
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 
-config({ path: '.env.identity' });
+config({ path: '.env.user-service' });
 
-import { Credential } from '../auth/credential.entity';
+import { Role } from '../roles/role.entity';
+import { User } from '../users/user.entity';
 
 /** Standalone DataSource used by TypeORM CLI (migrations). */
 export const AppDataSource = new DataSource({
   type: 'postgres',
   url: process.env['DATABASE_URL'],
-  entities: [Credential],
-  migrations: ['apps/identity-service/src/database/migrations/*.ts'],
+  entities: [User, Role],
+  migrations: ['apps/user-service/src/database/migrations/*.ts'],
   synchronize: false,
 });
