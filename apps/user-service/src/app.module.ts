@@ -8,7 +8,7 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.local' }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.user-service' }),
     DatabaseModule,
     PubSubModule.forRoot(),
     UsersModule,

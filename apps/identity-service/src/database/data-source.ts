@@ -1,5 +1,8 @@
+import { config } from 'dotenv';
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
+
+config({ path: '.env.identity' });
 
 import { Credential } from '../auth/credential.entity';
 

@@ -1,5 +1,8 @@
+import { config } from 'dotenv';
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
+
+config({ path: '.env.user-service' });
 
 import { Role } from '../roles/role.entity';
 import { User } from '../users/user.entity';
