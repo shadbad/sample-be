@@ -9,7 +9,11 @@ import { Role } from '../roles/role.entity';
 import { RolesRepository } from '../roles/roles.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { I_USER_REPOSITORY, IUserRepository } from './interfaces/user-repository.interface';
+import {
+  FindAllOptions,
+  I_USER_REPOSITORY,
+  IUserRepository,
+} from './interfaces/user-repository.interface';
 import { User } from './user.entity';
 import { UsersService } from './users.service';
 
@@ -60,6 +64,69 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
+  });
+
+  describe('findAll', () => {
+    it('given no options, when findAll is called, then it returns paginated users with default sort echoed in meta', async () => {
+      const users = [makeUser(), makeUser({ email: 'b@example.com' })];
+      usersRepo.findAll.mockResolvedValue([users, 2]);
+
+      const result = await service.findAll(1, 10);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.meta.total).toBe(2);
+        expect(result.data.meta.page).toBe(1);
+        expect(result.data.meta.limit).toBe(10);
+        expect(result.data.meta.totalPages).toBe(1);
+        expect(result.data.data).toHaveLength(2);
+      }
+      expect(usersRepo.findAll).toHaveBeenCalledWith(0, 10, {});
+    });
+
+    it('given search option, when findAll is called, then it passes search through and echoes in meta', async () => {
+      const users = [makeUser({ fullName: 'Alice Smith' })];
+      usersRepo.findAll.mockResolvedValue([users, 1]);
+
+      const options: FindAllOptions = { search: 'alice' };
+      const result = await service.findAll(1, 10, options);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.meta.search).toBe('alice');
+        expect(result.data.meta.total).toBe(1);
+      }
+      expect(usersRepo.findAll).toHaveBeenCalledWith(0, 10, options);
+    });
+
+    it('given sortBy and sortOrder options, when findAll is called, then they are echoed in meta', async () => {
+      usersRepo.findAll.mockResolvedValue([[], 0]);
+
+      const options: FindAllOptions = { sortBy: 'fullName', sortOrder: 'asc' };
+      const result = await service.findAll(1, 20, options);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.meta.sortBy).toBe('fullName');
+        expect(result.data.meta.sortOrder).toBe('asc');
+      }
+    });
+
+    it('given a page > 1, when findAll is called, then it computes the correct skip', async () => {
+      usersRepo.findAll.mockResolvedValue([[], 15]);
+
+      await service.findAll(2, 5);
+
+      expect(usersRepo.findAll).toHaveBeenCalledWith(5, 5, {});
+    });
+
+    it('given limit over MAX_LIMIT, when findAll is called, then it clamps to 100', async () => {
+      usersRepo.findAll.mockResolvedValue([[], 0]);
+
+      await service.findAll(1, 9999);
+
+      expect(usersRepo.findAll).toHaveBeenCalledWith(0, 100, {});
+    });
   });
 
   describe('create', () => {

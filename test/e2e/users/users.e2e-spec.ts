@@ -123,6 +123,73 @@ describe('Users (e2e)', () => {
 
       expect(res.status).toBe(401);
     });
+
+    it('given a search term, when list is called, then it returns only matching users', async () => {
+      /* Create two uniquely named users so we can distinguish matches. */
+      const uniqueFragment = `srch${Date.now()}`;
+      const matchEmail = TestData.email(`${uniqueFragment}-match`);
+      const matchName = `MatchUser ${uniqueFragment}`;
+      const noMatchEmail = TestData.email(`nomatch${Date.now()}`);
+
+      const c1 = await api.post('/users', {
+        email: matchEmail,
+        fullName: matchName,
+        roleId: env.adminRoleId,
+      });
+      expect(c1.status).toBe(201);
+      tracker.track('user', (c1.body as { data: { id: string } }).data.id);
+
+      const c2 = await api.post('/users', {
+        email: noMatchEmail,
+        fullName: TestData.fullName('NoMatch'),
+        roleId: env.adminRoleId,
+      });
+      expect(c2.status).toBe(201);
+      tracker.track('user', (c2.body as { data: { id: string } }).data.id);
+
+      const res = await api.get('/users', { search: uniqueFragment, limit: 50 });
+
+      expect(res.status).toBe(200);
+      const ids = (res.body as { data: Array<{ id: string }> }).data.map((u) => u.id);
+      expect(ids).toContain((c1.body as { data: { id: string } }).data.id);
+      expect(ids).not.toContain((c2.body as { data: { id: string } }).data.id);
+      expect(res.body.meta.total).toBeGreaterThanOrEqual(1);
+    });
+
+    it('given an empty search string, when list is called, then it behaves like no search', async () => {
+      const res = await api.get('/users', { search: '', limit: 5 });
+
+      expect(res.status).toBe(200);
+      expect(res.body.meta.total).toBeGreaterThan(0);
+    });
+
+    it('given sortBy=fullName&sortOrder=asc, when list is called, then users are returned in ascending name order', async () => {
+      const res = await api.get('/users', { sortBy: 'fullName', sortOrder: 'asc', limit: 50 });
+
+      expect(res.status).toBe(200);
+      const names: string[] = (res.body as { data: Array<{ fullName: string }> }).data.map(
+        (u) => u.fullName,
+      );
+      const sorted = [...names].sort((a, b) => a.localeCompare(b));
+      expect(names).toEqual(sorted);
+    });
+
+    it('given sortBy=email&sortOrder=desc, when list is called, then users are sorted by email descending', async () => {
+      const res = await api.get('/users', { sortBy: 'email', sortOrder: 'desc', limit: 50 });
+
+      expect(res.status).toBe(200);
+      const emails: string[] = (res.body as { data: Array<{ email: string }> }).data.map(
+        (u) => u.email,
+      );
+      const sorted = [...emails].sort((a, b) => b.localeCompare(a));
+      expect(emails).toEqual(sorted);
+    });
+
+    it('given an invalid sortBy value, when list is called, then it returns 200 (falls back to default)', async () => {
+      const res = await api.get('/users', { sortBy: 'invalid_column' });
+
+      expect(res.status).toBe(200);
+    });
   });
 
   // ── GET /users/:id ──────────────────────────────────────────────────

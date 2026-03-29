@@ -18,12 +18,16 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { PaginatedUsersResponseDto } from './dto/paginated-users-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import type { SortOrder, UserSortField } from './interfaces/user-repository.interface';
 import { UsersService } from './users.service';
 
 /** Helper — maps Result errors to NestJS HTTP exceptions. */
 function throwMapped(error: AppException): never {
   throw mapException(error);
 }
+
+const VALID_SORT_FIELDS = new Set<string>(['fullName', 'email', 'createdAt']);
+const VALID_SORT_ORDERS = new Set<string>(['asc', 'desc']);
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -32,17 +36,53 @@ export class UsersController {
   constructor(private readonly _usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List users with pagination' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'List users with pagination, search, and sort' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 20, max: 100)',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Case-insensitive substring match on fullName or email',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    enum: ['fullName', 'email', 'createdAt'],
+    description: 'Column to sort by (default: createdAt)',
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: ['asc', 'desc'],
+    description: 'Sort direction (default: desc)',
+  })
   @ApiResponse({ status: 200, type: PaginatedUsersResponseDto })
   async findAll(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
   ): Promise<PaginatedUsersResponseDto> {
     const result = await this._usersService.findAll(
       page !== undefined ? parseInt(page, 10) : undefined,
       limit !== undefined ? parseInt(limit, 10) : undefined,
+      {
+        search: search?.trim() || undefined,
+        sortBy: VALID_SORT_FIELDS.has(sortBy ?? '') ? (sortBy as UserSortField) : undefined,
+        sortOrder: VALID_SORT_ORDERS.has(sortOrder ?? '') ? (sortOrder as SortOrder) : undefined,
+      },
     );
     if (!result.success) throwMapped(result.error);
     return result.data;
