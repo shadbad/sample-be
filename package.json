@@ -20,6 +20,7 @@
     "format:fix": "prettier --write .",
     "infra:down": "docker compose down",
     "infra:up": "docker compose up -d && sleep 4 && ./scripts/init-pubsub.sh",
+    "kill:ports": "lsof -ti :3000,3001,3002 | xargs kill -9 2>/dev/null; echo 'Ports 3000, 3001, 3002 cleared'",
     "lint:check": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepare": "husky",

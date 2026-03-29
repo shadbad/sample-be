@@ -15,4 +15,9 @@ export class RolesRepository {
   findById(id: string): Promise<Role | null> {
     return this._repo.findOne({ where: { id } });
   }
+
+  /** Return all roles ordered by name. */
+  findAll(): Promise<Role[]> {
+    return this._repo.find({ order: { name: 'ASC' } });
+  }
 }

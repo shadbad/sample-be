@@ -16,8 +16,8 @@ export interface UserCreatedEvent {
     readonly userId: string;
     readonly email: string;
     readonly fullName: string;
-    readonly roleId: string;
-    readonly roleName: string;
+    readonly roleId?: string;
+    readonly roleName?: string;
   };
 }
 
@@ -29,8 +29,8 @@ export interface UserUpdatedEvent {
     readonly userId: string;
     readonly email: string;
     readonly fullName: string;
-    readonly roleId: string;
-    readonly roleName: string;
+    readonly roleId?: string;
+    readonly roleName?: string;
   };
 }
 

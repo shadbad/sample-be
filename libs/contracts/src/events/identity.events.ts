@@ -15,7 +15,7 @@ export interface IdentityUserRegisteredEvent {
     readonly userId: string;
     readonly email: string;
     readonly fullName: string;
-    readonly roleId: string;
+    readonly roleId?: string;
   };
 }
 

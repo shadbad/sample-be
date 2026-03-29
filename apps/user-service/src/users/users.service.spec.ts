@@ -69,6 +69,11 @@ describe('UsersService', () => {
       roleId: '00000000-0000-0000-0000-000000000010',
     };
 
+    const dtoNoRole: CreateUserDto = {
+      email: 'norole@example.com',
+      fullName: 'No Role User',
+    };
+
     it('given an email already taken, when create is called, then it returns a ConflictException result', async () => {
       usersRepo.findByEmail.mockResolvedValue(makeUser({ email: dto.email }));
 
@@ -115,6 +120,29 @@ describe('UsersService', () => {
             roleId: role.id,
             roleName: role.name,
           }),
+        }),
+      );
+    });
+
+    it('given no roleId, when create is called, then it saves user with null role and publishes event without roleId', async () => {
+      const savedUser = makeUser({
+        email: dtoNoRole.email,
+        fullName: dtoNoRole.fullName,
+        role: null as unknown as Role,
+      });
+      usersRepo.findByEmail.mockResolvedValue(null);
+      usersRepo.save.mockResolvedValue(savedUser);
+
+      const result = await service.create(dtoNoRole);
+
+      expect(result.success).toBe(true);
+      expect(rolesRepo.findById).not.toHaveBeenCalled();
+      expect(usersRepo.save).toHaveBeenCalledTimes(1);
+      expect(pubSubService.publish).toHaveBeenCalledWith(
+        USER_EVENTS_TOPIC,
+        expect.objectContaining({
+          eventType: USER_EVENT_TYPES.CREATED,
+          payload: expect.not.objectContaining({ roleId: expect.anything() }),
         }),
       );
     });
@@ -194,6 +222,12 @@ describe('UsersService', () => {
       roleId: '00000000-0000-0000-0000-000000000010',
     };
 
+    const payloadNoRole = {
+      userId: 'event-norole-uuid',
+      email: 'norole@example.com',
+      fullName: 'No Role Event User',
+    };
+
     it('given a userId that already exists, when createFromEvent is called, then it returns ok without saving again', async () => {
       usersRepo.findById.mockResolvedValue(makeUser({ email: payload.email }));
 
@@ -217,6 +251,17 @@ describe('UsersService', () => {
         USER_EVENTS_TOPIC,
         expect.objectContaining({ eventType: USER_EVENT_TYPES.CREATED }),
       );
+    });
+
+    it('given a payload without roleId, when createFromEvent is called, then it saves user with null role', async () => {
+      usersRepo.findById.mockResolvedValue(null);
+      usersRepo.save.mockImplementation((u) => Promise.resolve(u));
+
+      const result = await service.createFromEvent(payloadNoRole);
+
+      expect(result.success).toBe(true);
+      expect(rolesRepo.findById).not.toHaveBeenCalled();
+      expect(usersRepo.save).toHaveBeenCalledTimes(1);
     });
   });
 });

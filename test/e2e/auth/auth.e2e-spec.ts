@@ -60,7 +60,6 @@ describe('Auth (e2e)', () => {
         email,
         fullName: TestData.fullName('Register'),
         password: TestData.password(),
-        roleId: env.adminRoleId,
       });
 
       expect(res.status).toBe(201);
@@ -94,7 +93,6 @@ describe('Auth (e2e)', () => {
         email,
         fullName: TestData.fullName('Dup'),
         password: TestData.password(),
-        roleId: env.adminRoleId,
       });
       expect(first.status).toBe(201);
 
@@ -111,7 +109,6 @@ describe('Auth (e2e)', () => {
         email,
         fullName: TestData.fullName('Dup2'),
         password: TestData.password(),
-        roleId: env.adminRoleId,
       });
       expect(second.status).toBe(409);
     });
@@ -121,7 +118,6 @@ describe('Auth (e2e)', () => {
         email: 'not-an-email',
         fullName: TestData.fullName(),
         password: TestData.password(),
-        roleId: env.adminRoleId,
       });
 
       expect(res.status).toBe(400);
@@ -132,7 +128,6 @@ describe('Auth (e2e)', () => {
         email: TestData.email(),
         fullName: TestData.fullName(),
         password: 'short',
-        roleId: env.adminRoleId,
       });
 
       expect(res.status).toBe(400);
@@ -149,7 +144,6 @@ describe('Auth (e2e)', () => {
         email,
         fullName: TestData.fullName('Logout'),
         password: TestData.password(),
-        roleId: env.adminRoleId,
       });
       expect(regRes.status).toBe(201);
 
