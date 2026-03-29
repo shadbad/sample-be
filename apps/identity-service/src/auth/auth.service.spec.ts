@@ -61,7 +61,6 @@ describe('AuthService', () => {
       email: 'user@example.com',
       fullName: 'Jane Doe',
       password: 'SecurePass1!',
-      roleId: '00000000-0000-0000-0000-000000000010',
     };
 
     it('given an email that already exists, when register is called, then it returns a ConflictException result', async () => {
@@ -90,7 +89,6 @@ describe('AuthService', () => {
           payload: expect.objectContaining({
             email: dto.email,
             fullName: dto.fullName,
-            roleId: dto.roleId,
           }),
         }),
       );

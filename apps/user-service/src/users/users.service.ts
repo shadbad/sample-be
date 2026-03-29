@@ -11,6 +11,7 @@ import {
 import { ConflictException, err, NotFoundException, ok, Result } from '@libs/core';
 import { PubSubPublisherService } from '@libs/infra';
 
+import { Role } from '../roles/role.entity';
 import { RolesRepository } from '../roles/roles.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PaginatedUsersResponseDto } from './dto/paginated-users-response.dto';
@@ -72,15 +73,20 @@ export class UsersService {
       return err(new ConflictException('Email already taken', { email: dto.email }));
     }
 
-    const role = await this._rolesRepo.findById(dto.roleId);
-    if (role === null) {
-      return err(new NotFoundException('Role not found', { roleId: dto.roleId }));
+    let role: Role | null = null;
+    if (dto.roleId !== undefined) {
+      role = await this._rolesRepo.findById(dto.roleId);
+      if (role === null) {
+        return err(new NotFoundException('Role not found', { roleId: dto.roleId }));
+      }
     }
 
     const user = new User();
     user.email = dto.email;
     user.fullName = dto.fullName;
-    user.role = role;
+    if (role !== null) {
+      user.role = role;
+    }
 
     const saved = await this._usersRepo.save(user);
 
@@ -91,8 +97,7 @@ export class UsersService {
         userId: saved.id,
         email: saved.email,
         fullName: saved.fullName,
-        roleId: role.id,
-        roleName: role.name,
+        ...(role !== null ? { roleId: role.id, roleName: role.name } : {}),
       },
     };
     await this._pubSub.publish(USER_EVENTS_TOPIC, event);
@@ -119,7 +124,7 @@ export class UsersService {
       user.fullName = dto.fullName;
     }
 
-    let role = user.role;
+    let role: Role | null = user.role;
     if (dto.roleId !== undefined && dto.roleId !== user.roleId) {
       const found = await this._rolesRepo.findById(dto.roleId);
       if (found === null) {
@@ -138,8 +143,7 @@ export class UsersService {
         userId: saved.id,
         email: saved.email,
         fullName: saved.fullName,
-        roleId: role.id,
-        roleName: role.name,
+        ...(role !== null ? { roleId: role.id, roleName: role.name } : {}),
       },
     };
     await this._pubSub.publish(USER_EVENTS_TOPIC, event);
@@ -177,16 +181,21 @@ export class UsersService {
       return ok(undefined);
     }
 
-    const role = await this._rolesRepo.findById(payload.roleId);
-    if (role === null) {
-      return err(new NotFoundException('Role not found', { roleId: payload.roleId }));
+    let role: Role | null = null;
+    if (payload.roleId !== undefined) {
+      role = await this._rolesRepo.findById(payload.roleId);
+      if (role === null) {
+        return err(new NotFoundException('Role not found', { roleId: payload.roleId }));
+      }
     }
 
     const user = new User();
     (user as unknown as Record<string, unknown>)['id'] = payload.userId;
     user.email = payload.email;
     user.fullName = payload.fullName;
-    user.role = role;
+    if (role !== null) {
+      user.role = role;
+    }
 
     await this._usersRepo.save(user);
     return ok(undefined);

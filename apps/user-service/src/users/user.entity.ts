@@ -14,20 +14,20 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 255 })
   fullName!: string;
 
-  @ManyToOne(() => Role, { nullable: false, onDelete: 'RESTRICT', eager: false })
+  @ManyToOne(() => Role, { nullable: true, onDelete: 'SET NULL', eager: false })
   @JoinColumn({ name: 'roleId' })
-  role!: Role;
+  role!: Role | null;
 
   @RelationId((user: User) => user.role)
-  roleId!: string;
+  roleId!: string | null;
 
-  /** Map to response DTO — only includes role if relation was loaded. */
+  /** Map to response DTO — returns null role when none is assigned. */
   toResponseDto(): UserResponseDto {
     return {
       id: this.id,
       email: this.email,
       fullName: this.fullName,
-      role: this.role ? { id: this.role.id, name: this.role.name } : { id: this.roleId, name: '' },
+      role: this.role ? { id: this.role.id, name: this.role.name } : null,
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString(),
     };

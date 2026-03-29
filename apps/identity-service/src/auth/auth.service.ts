@@ -61,7 +61,6 @@ export class AuthService {
         userId,
         email: dto.email,
         fullName: dto.fullName,
-        roleId: dto.roleId,
       },
     };
     await this._pubSub.publish(IDENTITY_EVENTS_TOPIC, event);

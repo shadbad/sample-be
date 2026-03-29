@@ -48,7 +48,6 @@ export class ApiClient {
     email: string;
     fullName: string;
     password: string;
-    roleId: string;
   }): Promise<request.Response> {
     return this.post('/auth/register', body);
   }

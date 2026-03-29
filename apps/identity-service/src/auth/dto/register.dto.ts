@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
 
 /** DTO for the POST /auth/register endpoint. */
 export class RegisterDto {
@@ -17,8 +17,4 @@ export class RegisterDto {
   @IsString()
   @MinLength(8)
   readonly password!: string;
-
-  @ApiProperty({ example: '00000000-0000-0000-0000-000000000010' })
-  @IsUUID()
-  readonly roleId!: string;
 }
