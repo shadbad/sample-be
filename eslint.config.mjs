@@ -44,6 +44,10 @@ export default tseslint.config(
       // Jest's expect(mock.method) pattern always triggers this rule; the jest plugin
       // provides a smarter replacement but is not installed — disable for test files.
       '@typescript-eslint/unbound-method': 'off',
+      // Jest matchers (expect.objectContaining, expect.any, etc.) are typed with `any`
+      // in @types/jest — disabling these avoids false positives in test files.
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
     },
   },
 );
