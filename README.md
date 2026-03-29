@@ -127,9 +127,9 @@ Each service loads its own env file from the repo root. Copy the relevant `.exam
 | `PORT`                 | all                                  | HTTP port for the service              | `3000`                                            |
 | `DATABASE_URL`         | `.env.identity`, `.env.user-service` | PostgreSQL connection string           | `postgresql://dev:dev@localhost:5432/identity_db` |
 | `JWT_SECRET`           | `.env.api-gateway`, `.env.identity`  | Shared HS256 signing secret            | *(generate a strong random value)*                |
-| `JWT_EXPIRES_IN`       | `.env.identity`                      | Access token lifetime                  | `15m`                                             |
-| `PUBSUB_PROJECT_ID`    | `.env.identity`, `.env.user-service` | GCP project ID (emulator: `local-dev`) | `local-dev`                                       |
-| `PUBSUB_EMULATOR_HOST` | `.env.identity`, `.env.user-service` | Emulator host — omit in production     | `localhost:8085`                                  |
+| `JWT_EXPIRES_IN`       | `.env.api-gateway`, `.env.identity`                      | Access token lifetime                  | `15m`                                             |
+| `PUBSUB_PROJECT_ID`    | `.env.api-gateway`, `.env.identity`, `.env.user-service` | GCP project ID (emulator: `local-dev`) | `local-dev`                                       |
+| `PUBSUB_EMULATOR_HOST` | `.env.api-gateway`, `.env.identity`, `.env.user-service` | Emulator host — omit in production     | `localhost:8085`                                  |
 | `IDENTITY_SERVICE_URL` | `.env.api-gateway`                   | Downstream URL for identity-service    | `http://localhost:3002`                           |
 | `USER_SERVICE_URL`     | `.env.api-gateway`                   | Downstream URL for user-service        | `http://localhost:3001`                           |
 
@@ -247,11 +247,24 @@ Swagger UI is available when any service is running:
 ### Authentication flow
 
 ```
-POST /auth/register   → 201  { data: { accessToken, tokenType, expiresIn } }
-POST /auth/login      → 200  { data: { accessToken, tokenType, expiresIn } }
-                             Sets httpOnly cookie: refresh_token
-POST /auth/refresh    → 200  Rotates refresh token, issues new access token
-POST /auth/logout     → 204  Clears refresh token (requires Bearer token)
+POST /v1/auth/register   → 201  { data: { accessToken, tokenType, expiresIn } }
+POST /v1/auth/login      → 200  { data: { accessToken, tokenType, expiresIn } }
+                                Sets httpOnly cookie: refresh_token
+POST /v1/auth/refresh    → 200  Rotates refresh token, issues new access token
+POST /v1/auth/logout     → 204  Clears refresh token (requires Bearer token)
+```
+
+### Users API
+
+All users endpoints require `Authorization: Bearer <accessToken>`.
+
+```
+GET    /v1/users            → 200  { data: UserResponseDto[], meta: { page, limit, total } }
+                                   Query params: page (default: 1), limit (default: 20)
+POST   /v1/users            → 201  { data: UserResponseDto }
+GET    /v1/users/:id        → 200  { data: UserResponseDto }
+PATCH  /v1/users/:id        → 200  { data: UserResponseDto }
+DELETE /v1/users/:id        → 204  (soft-delete)
 ```
 
 All protected endpoints require `Authorization: Bearer <accessToken>` header.
@@ -274,10 +287,12 @@ All protected endpoints require `Authorization: Bearer <accessToken>` header.
 ├── scripts/
 │   ├── init-db.sql           # Creates users_db and identity_db
 │   └── init-pubsub.sh        # Creates Pub/Sub topics and subscriptions
+├── test/
+│   └── e2e/                  # End-to-end test suites (auth, users)
 ├── docker-compose.yml
 ├── nest-cli.json
 ├── tsconfig.json
-└── .env.example
+└── .env.*.example
 ```
 
 ### Service internals (example: identity-service)
@@ -317,9 +332,14 @@ npm run test:watch
 
 # Coverage report (enforced thresholds: 80% statements/functions/lines, 75% branches)
 npm run test:cov
+
+# End-to-end tests (requires running infrastructure and services)
+npm run test:e2e
 ```
 
-Tests are co-located with source files (`*.spec.ts`). All unit tests mock I/O using `@golevelup/ts-jest` `createMock<T>()` — no real database or Pub/Sub connections.
+Unit tests are co-located with source files (`*.spec.ts`). All unit tests mock I/O using `@golevelup/ts-jest` `createMock<T>()` — no real database or Pub/Sub connections.
+
+End-to-end tests live under `test/e2e/` and exercise the full HTTP stack against real running services (auth flow and users CRUD). Run `npm run infra:up` and start all services before executing `npm run test:e2e`.
 
 ---
 
@@ -364,8 +384,9 @@ Tests are co-located with source files (`*.spec.ts`). All unit tests mock I/O us
 
 ### Testing
 
-| Script                | Description                               |
-| --------------------- | ----------------------------------------- |
-| `npm test`            | Run all unit tests once                   |
-| `npm run test:watch`  | Run unit tests in watch mode              |
-| `npm run test:cov`    | Run tests and generate coverage report    |
+| Script                 | Description                                          |
+| ---------------------- | ---------------------------------------------------- |
+| `npm test`             | Run all unit tests once                              |
+| `npm run test:watch`   | Run unit tests in watch mode                         |
+| `npm run test:cov`     | Run tests and generate coverage report               |
+| `npm run test:e2e`     | Run end-to-end tests (requires live services)        |
