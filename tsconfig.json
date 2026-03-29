@@ -22,30 +22,14 @@
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@libs/common": [
-        "libs/common/src"
-      ],
-      "@libs/common/*": [
-        "libs/common/src/*"
-      ],
-      "@libs/contracts": [
-        "libs/contracts/src"
-      ],
-      "@libs/contracts/*": [
-        "libs/contracts/src/*"
-      ],
-      "@libs/core": [
-        "libs/core/src"
-      ],
-      "@libs/core/*": [
-        "libs/core/src/*"
-      ],
-      "@libs/infra": [
-        "libs/infra/src"
-      ],
-      "@libs/infra/*": [
-        "libs/infra/src/*"
-      ]
+      "@libs/common": ["libs/common/src"],
+      "@libs/common/*": ["libs/common/src/*"],
+      "@libs/contracts": ["libs/contracts/src"],
+      "@libs/contracts/*": ["libs/contracts/src/*"],
+      "@libs/core": ["libs/core/src"],
+      "@libs/core/*": ["libs/core/src/*"],
+      "@libs/infra": ["libs/infra/src"],
+      "@libs/infra/*": ["libs/infra/src/*"]
     }
   }
 }

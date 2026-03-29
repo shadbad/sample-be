@@ -1,14 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/sample-be/src",
+  "sourceRoot": "apps/api-gateway/src",
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": true,
-    "tsConfigPath": "apps/sample-be/tsconfig.app.json"
+    "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
   },
   "monorepo": true,
-  "root": "apps/sample-be",
+  "root": "apps/api-gateway",
   "projects": {
     "api-gateway": {
       "type": "application",
@@ -62,15 +62,6 @@
       "sourceRoot": "libs/infra/src",
       "compilerOptions": {
         "tsConfigPath": "libs/infra/tsconfig.lib.json"
-      }
-    },
-    "sample-be": {
-      "type": "application",
-      "root": "apps/sample-be",
-      "entryFile": "main",
-      "sourceRoot": "apps/sample-be/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/sample-be/tsconfig.app.json"
       }
     },
     "user-service": {

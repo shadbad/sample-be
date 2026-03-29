@@ -1,6 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import { Test, TestingModule } from '@nestjs/testing';
+import request from 'supertest';
 import { IdentityServiceModule } from './../src/identity-service.module';
 
 describe('IdentityServiceController (e2e)', () => {
@@ -16,7 +16,7 @@ describe('IdentityServiceController (e2e)', () => {
   });
 
   it('/ (GET)', () => {
-    return request(app.getHttpServer())
+    return request(app.getHttpServer() as import('http').Server)
       .get('/')
       .expect(200)
       .expect('Hello World!');
