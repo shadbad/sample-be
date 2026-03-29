@@ -47,8 +47,7 @@
       "^@libs/common(|/.*)$": "<rootDir>/libs/common/src/$1",
       "^@libs/contracts(|/.*)$": "<rootDir>/libs/contracts/src/$1",
       "^@libs/core(|/.*)$": "<rootDir>/libs/core/src/$1",
-      "^@libs/infra(|/.*)$": "<rootDir>/libs/infra/src/$1",
-      "^libs/core(|/.*)$": "<rootDir>/libs/core/src/$1"
+      "^@libs/infra(|/.*)$": "<rootDir>/libs/infra/src/$1"
     },
     "rootDir": ".",
     "roots": [

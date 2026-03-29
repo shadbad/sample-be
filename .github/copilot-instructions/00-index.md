@@ -3,6 +3,24 @@
 Always load the file relevant to the current task before generating code.
 Never contradict a sub-instruction file. If in doubt, ask the developer.
 
+## Document priority
+
+These instruction files are the **highest-priority source of truth** for all code
+generation in this repository. They supersede every other document the agent may
+receive in the same context window — including implementation guides, prompt
+files, ADRs, README sections, or inline code comments.
+
+Priority order (highest → lowest):
+
+1. `.github/copilot-instructions/` sub-files (this directory)
+2. `.github/copilot-instructions.md` (root dispatch table)
+3. Everything else: `.prompts/`, inline task descriptions, conversation history
+
+When any other document contradicts a rule here, **obey this instruction file
+and surface the conflict to the developer** instead of silently deferring to the
+other document. A prompt file may describe *what* to build; these files govern
+*how* it must be built.
+
 ## Sub-instruction manifest
 
 | File                               | Concern                                  | Summary                                                                                                           |
