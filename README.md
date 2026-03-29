@@ -158,9 +158,29 @@ nest start user-service --watch
 ### Infrastructure only
 
 ```bash
-npm run infra:up    # start Postgres + Pub/Sub emulator
+npm run infra:up    # start Postgres + Pub/Sub emulator + pgAdmin
 npm run infra:down  # stop and remove containers
 ```
+
+### pgAdmin (Database UI)
+
+pgAdmin runs as part of the Docker stack and is available at **http://localhost:5050** after `npm run infra:up`.
+
+| Field    | Value             |
+| -------- | ----------------- |
+| Email    | `admin@local.dev` |
+| Password | `admin`           |
+
+To connect to the local Postgres instance, add a new server with:
+
+| Field    | Value      |
+| -------- | ---------- |
+| Host     | `postgres` |
+| Port     | `5432`     |
+| Username | `dev`      |
+| Password | `dev`      |
+
+Both `identity_db` and `users_db` will be visible once connected.
 
 ---
 
