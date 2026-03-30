@@ -10,7 +10,7 @@ import { UsersModule } from './users/users.module';
 /** Root module for the API Gateway — validates JWTs and proxies to downstream services. */
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.gateway' }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.api-gateway' }),
     AuthModule,
     IdentityModule,
     UsersModule,
