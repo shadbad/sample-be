@@ -4,7 +4,11 @@ import * as bcrypt from 'bcrypt';
 
 import { Credential } from '../../auth/credential.entity';
 import { AppDataSource } from '../data-source';
-import { DEFAULT_ADMIN_CREDENTIAL } from './data/credentials.seed';
+import {
+  DEFAULT_ADMIN_CREDENTIAL,
+  DUMMY_USER_CREDENTIALS,
+  DUMMY_USER_PASSWORD,
+} from './data/credentials.seed';
 
 /** Seed the admin credential if it does not already exist. */
 async function seed(): Promise<void> {
@@ -27,6 +31,24 @@ async function seed(): Promise<void> {
     credential.lastLoginAt = null;
     await repo.save(credential);
     console.log('Admin credential seeded.');
+  }
+
+  const dummyHash = await bcrypt.hash(DUMMY_USER_PASSWORD, 12);
+  for (const dummy of DUMMY_USER_CREDENTIALS) {
+    const exists = await repo.findOne({ where: { userId: dummy.userId } });
+    if (exists !== null) {
+      console.log(`Credential for '${dummy.email}' already exists — skipping.`);
+    } else {
+      const credential = new Credential();
+      credential.userId = dummy.userId;
+      credential.email = dummy.email;
+      credential.passwordHash = dummyHash;
+      credential.isActive = true;
+      credential.refreshTokenHash = null;
+      credential.lastLoginAt = null;
+      await repo.save(credential);
+      console.log(`Credential for '${dummy.email}' seeded.`);
+    }
   }
 
   await AppDataSource.destroy();
