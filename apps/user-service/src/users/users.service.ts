@@ -78,7 +78,7 @@ export class UsersService {
     }
 
     let role: Role | null = null;
-    if (dto.roleId !== undefined) {
+    if (dto.roleId !== undefined && dto.roleId !== null) {
       role = await this._rolesRepo.findById(dto.roleId);
       if (role === null) {
         return err(new NotFoundException('Role not found', { roleId: dto.roleId }));
@@ -129,13 +129,18 @@ export class UsersService {
     }
 
     let role: Role | null = user.role;
-    if (dto.roleId !== undefined && dto.roleId !== user.roleId) {
-      const found = await this._rolesRepo.findById(dto.roleId);
-      if (found === null) {
-        return err(new NotFoundException('Role not found', { roleId: dto.roleId }));
+    if (dto.roleId !== undefined) {
+      if (dto.roleId === null) {
+        user.role = null;
+        role = null;
+      } else if (dto.roleId !== user.roleId) {
+        const found = await this._rolesRepo.findById(dto.roleId);
+        if (found === null) {
+          return err(new NotFoundException('Role not found', { roleId: dto.roleId }));
+        }
+        user.role = found;
+        role = found;
       }
-      user.role = found;
-      role = found;
     }
 
     const saved = await this._usersRepo.save(user);

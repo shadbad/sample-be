@@ -248,6 +248,31 @@ describe('UsersService', () => {
         }),
       );
     });
+
+    it('given roleId: null, when update is called, then it clears the role and publishes event without roleId', async () => {
+      const role = makeRole();
+      const user = makeUser({ role });
+      const savedUser = makeUser({
+        ...user,
+        role: null as unknown as Role,
+        roleId: null as unknown as string,
+      });
+      usersRepo.findById.mockResolvedValue(user);
+      usersRepo.save.mockImplementation((u) => Promise.resolve(u));
+      usersRepo.save.mockResolvedValue(savedUser);
+
+      const result = await service.update('user-uuid-1', { roleId: null });
+
+      expect(result.success).toBe(true);
+      expect(usersRepo.save).toHaveBeenCalledWith(expect.objectContaining({ role: null }));
+      expect(pubSubService.publish).toHaveBeenCalledWith(
+        USER_EVENTS_TOPIC,
+        expect.objectContaining({
+          eventType: USER_EVENT_TYPES.UPDATED,
+          payload: expect.not.objectContaining({ roleId: expect.anything() }),
+        }),
+      );
+    });
   });
 
   describe('remove', () => {
