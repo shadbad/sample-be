@@ -57,7 +57,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env['NODE_ENV'] === 'production',
       sameSite: 'strict',
-      path: '/auth/refresh',
+      path: '/v1/auth/refresh',
     });
 
     return { data: result.data.auth };
@@ -85,7 +85,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env['NODE_ENV'] === 'production',
       sameSite: 'strict',
-      path: '/auth/refresh',
+      path: '/v1/auth/refresh',
     });
 
     return { data: result.data.auth };
@@ -110,6 +110,6 @@ export class AuthController {
     const result = await this._authService.logout(userId);
     if (!result.success) throw mapException(result.error);
 
-    res.clearCookie(REFRESH_COOKIE);
+    res.clearCookie(REFRESH_COOKIE, { path: '/v1/auth/refresh' });
   }
 }
