@@ -25,8 +25,9 @@ async function seed(): Promise<void> {
   for (const userSeed of DEFAULT_USERS) {
     const exists = await userRepo.findOne({ where: { id: userSeed.id } });
     if (exists === null) {
-      const role = await roleRepo.findOne({ where: { id: userSeed.roleId } });
-      if (role === null) throw new Error(`Role ${userSeed.roleId} not found`);
+      const roleId = 'roleId' in userSeed ? userSeed.roleId : undefined;
+      const role = roleId ? await roleRepo.findOne({ where: { id: roleId } }) : null;
+      if (roleId && role === null) throw new Error(`Role ${roleId} not found`);
       const user = new User();
       Object.assign(user, {
         id: userSeed.id,
